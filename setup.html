@@ -1,1 +1,63 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Setup Firebase | Penca Mundial</title><link rel="stylesheet" href="css/style.css"></head><body class="auth-body"><main class="auth-wrapper"><section class="auth-card auth-card-wide"><h1>Setup Firebase</h1><p class="auth-subtitle">Usá esta página una sola vez. Primero iniciá sesión con la cuenta que será administradora. Publicá las reglas iniciales, cargá la base y después publicá las reglas finales.</p><div class="champion-required-box"><strong>Importante:</strong> mientras ejecutás setup, usá las reglas iniciales incluidas en <code>firestore-rules-inicial-setup.txt</code>.</div><p>Usuario conectado: <strong id="setupUser">Cargando...</strong></p><button id="loadBtn" class="auth-btn">Cargar base y hacerme admin</button><p id="setupLog" class="inline-message"></p><p class="auth-footer-text"><a href="index.html">Volver a la app</a></p></section></main><script type="module" src="js/setup.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Setup Firebase | Penca Mundial 2026</title>
+
+  <!--
+    CRÍTICO-03 · OWASP A03 — CSP activa incluso en esta página de setup.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com;
+    img-src 'self' data:;
+    font-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+  <main class="auth-wrapper">
+    <section class="auth-card auth-card-wide">
+      <h1>⚠️ Setup Firebase</h1>
+
+      <!--
+        CRÍTICO-02 · OWASP A01 / NIST AC-3 — ADVERTENCIA DE SEGURIDAD:
+        Esta página SOLO debe existir en entorno local de desarrollo.
+        ELIMINAR setup.html y js/setup.js antes de cualquier deploy a producción.
+        Ver .gitignore y README.md para instrucciones de exclusión.
+      -->
+      <div class="champion-required-box" style="border-color:#f44336;background:rgba(244,67,54,0.1)">
+        <strong>🔴 ADVERTENCIA DE SEGURIDAD:</strong><br>
+        Esta página permite auto-asignarse el rol de administrador y reescribir la base de datos.<br>
+        <strong>ELIMINAR este archivo antes de hacer deploy a producción.</strong><br>
+        Ver <code>README.md → Sección de Seguridad</code> para instrucciones.
+      </div>
+
+      <p class="auth-subtitle">Usá esta página una sola vez en entorno LOCAL. Primero iniciá sesión con la cuenta que será administradora. Publicá las reglas iniciales, cargá la base y después publicá las reglas finales.</p>
+
+      <div class="champion-required-box">
+        <strong>Importante:</strong> mientras ejecutás setup, usá las reglas iniciales incluidas en <code>firestore-rules-inicial-setup.txt</code>.
+      </div>
+
+      <p>Usuario conectado: <strong id="setupUser">Cargando...</strong></p>
+      <button id="loadBtn" class="auth-btn">Cargar base y hacerme admin</button>
+      <p id="setupLog" class="inline-message"></p>
+      <p class="auth-footer-text"><a href="index.html">Volver a la app</a></p>
+    </section>
+  </main>
+  <script type="module" src="js/setup.js"></script>
+</body>
+</html>

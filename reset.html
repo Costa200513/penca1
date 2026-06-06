@@ -1,1 +1,52 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recuperar contraseña</title><link rel="stylesheet" href="css/style.css"></head><body class="auth-body"><main class="auth-wrapper"><section class="auth-card"><h1>Recuperar contraseña</h1><p class="auth-subtitle">Firebase enviará un correo para restablecer tu contraseña.</p><form id="resetForm" class="auth-form"><div class="auth-form-group"><label>Correo electrónico</label><input id="resetEmail" type="email" required></div><button class="auth-btn">Enviar correo</button></form><p id="resetMessage" class="inline-message"></p><p class="auth-footer-text"><a href="login.html">Volver al login</a></p></section></main><script type="module" src="js/auth.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Recuperar contraseña | Penca Mundial 2026</title>
+  <meta name="description" content="Recuperá el acceso a tu cuenta de la Penca Mundial 2026.">
+
+  <!--
+    CRÍTICO-03 · OWASP A03 / NIST SI-10 / CIS 16.1 — Content Security Policy
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com;
+    img-src 'self' data:;
+    font-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+  <main class="auth-wrapper">
+    <section class="auth-card">
+      <h1>Recuperar contraseña</h1>
+      <p class="auth-subtitle">Ingresá tu correo y Firebase te enviará un enlace para restablecer tu contraseña.</p>
+
+      <form id="resetForm" class="auth-form" autocomplete="on">
+        <div class="auth-form-group">
+          <label for="resetEmail">Correo electrónico</label>
+          <input id="resetEmail" type="email" autocomplete="email" required>
+        </div>
+        <button class="auth-btn" type="submit">Enviar correo</button>
+      </form>
+
+      <p id="resetMessage" class="inline-message"></p>
+      <p class="auth-footer-text"><a href="login.html">Volver al login</a></p>
+    </section>
+  </main>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

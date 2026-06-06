@@ -1,17 +1,33 @@
-// Pegá acá la configuración real que te da Firebase Console → Project settings → Your apps → Web app.
+// ⚠ SEGURIDAD: Reemplazá estos valores con los de tu nuevo proyecto Firebase.
+// Restringí la API Key en Firebase Console → Configuración → Credenciales → API Keys
+// → Restricciones de aplicación: solo tu dominio de producción.
+// Ver: https://firebase.google.com/docs/projects/api-keys
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getAuth,
+  browserSessionPersistence,
+  setPersistence,
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOJ7wHVeCE7iwVh49anOjakzAJ4x-H9xY",
-  authDomain: "mundial-72a87.firebaseapp.com",
-  projectId: "mundial-72a87",
-  storageBucket: "mundial-72a87.firebasestorage.app",
-  messagingSenderId: "735832559935",
-  appId: "1:735832559935:web:ab8fb046c4838e31d0838a",
+  apiKey: "REEMPLAZAR_CON_NUEVA_API_KEY",
+  authDomain: "REEMPLAZAR_CON_AUTHDOMAIN.firebaseapp.com",
+  projectId: "REEMPLAZAR_CON_PROJECTID",
+  storageBucket: "REEMPLAZAR_CON_STORAGEBUCKET",
+  messagingSenderId: "REEMPLAZAR_CON_SENDERID",
+  appId: "REEMPLAZAR_CON_APPID",
 };
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// NIST AC-12 / ISO 27001 A.8.5: Persistencia de sesión (se cierra al cerrar la pestaña).
+// Ideal para equipos compartidos en contexto educativo.
+setPersistence(auth, browserSessionPersistence).catch((err) => {
+  // No usar console.error en producción; solo loguear en desarrollo
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    console.warn("[Seguridad] No se pudo configurar persistencia de sesión:", err.code);
+  }
+});

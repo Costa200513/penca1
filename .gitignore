@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CRÍTICO-01 · NIST SC-28 / CIS 3.2 — Variables de entorno y credenciales
+# ─────────────────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.*
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CRÍTICO-02 · OWASP A01 / NIST AC-3 — Archivos de setup/seed solo para desarrollo
+# Estos archivos NO deben existir en el servidor de producción.
+# ─────────────────────────────────────────────────────────────────────────────
+setup.html
+js/setup.js
+js/seed-data.js
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Archivos de texto con reglas de Firestore temporales (solo uso local)
+# ─────────────────────────────────────────────────────────────────────────────
+firestore-rules-inicial-setup.txt
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Herramientas de desarrollo y dependencias
+# ─────────────────────────────────────────────────────────────────────────────
+node_modules/
+.firebase/
+.firebaserc.local
+
+# Logs y archivos temporales
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

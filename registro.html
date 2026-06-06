@@ -3,37 +3,64 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Registro | Penca Mundial</title>
+  <title>Registro | Penca Mundial 2026</title>
+  <meta name="description" content="Creá tu cuenta en la Penca Mundial 2026 del Profesorado de Informática.">
+
+  <!--
+    CRÍTICO-03 · OWASP A03 / NIST SI-10 / CIS 16.1 — Content Security Policy
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com;
+    img-src 'self' data:;
+    font-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="auth-body">
   <main class="auth-wrapper">
     <section class="auth-card auth-card-wide">
       <h1>Crear cuenta</h1>
-      <p class="auth-subtitle">Registrate con correo y usuario. La contraseña debe tener mínimo 6 caracteres. El campeón se elige luego desde el perfil.</p>
+      <p class="auth-subtitle">Registrate con correo y usuario. La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número. El campeón se elige luego desde el perfil.</p>
 
       <form id="registerForm" class="auth-form">
         <div class="auth-grid">
           <div class="auth-form-group">
-            <label>Usuario</label>
-            <input id="username" type="text" required>
+            <label for="username">Usuario</label>
+            <input id="username" type="text" autocomplete="username" required>
             <small class="input-help">Solo letras, números, punto y guion bajo.</small>
           </div>
 
           <div class="auth-form-group">
-            <label>Nombre completo</label>
-            <input id="fullName" type="text" required>
+            <label for="fullName">Nombre completo</label>
+            <input id="fullName" type="text" autocomplete="name" required>
           </div>
 
           <div class="auth-form-group">
-            <label>Correo electrónico</label>
-            <input id="email" type="email" required>
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" autocomplete="email" required>
           </div>
 
           <div class="auth-form-group">
-            <label>Contraseña</label>
-            <input id="password" type="password" minlength="6" required>
-            <small class="input-help">Mínimo 6 caracteres.</small>
+            <label for="password">Contraseña</label>
+            <!--
+              MEDIO-02 · NIST IA-5 — autocomplete="new-password" indica al navegador
+              que este campo es para una nueva contraseña (no autocompletar con la actual).
+            -->
+            <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+            <small class="input-help">Mínimo 8 caracteres, una mayúscula y un número.</small>
           </div>
 
           <div class="auth-form-group">

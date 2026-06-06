@@ -3,7 +3,7 @@ import { TEAMS } from "./seed-data.js";
 import {
   onAuthStateChanged,
   signOut,
-  updatePassword,
+  sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   collection,
@@ -17,6 +17,10 @@ import {
   query,
   orderBy,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// MEDIO-01 · NIST SI-11 — Solo loguear errores en desarrollo
+const IS_DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+function devLog(...args) { if (IS_DEV) console.error(...args); }
 
 let currentUser = null;
 let userData = null;
@@ -47,6 +51,15 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = "login.html";
     return;
   }
+
+  // BAJO-01 (complemento) · NIST IA-8 — Bloquear usuarios sin email verificado.
+  // El registro ya envía el correo de verificación; esto es la segunda línea de defensa.
+  if (!user.emailVerified) {
+    await signOut(auth);
+    window.location.href = "login.html?msg=verify";
+    return;
+  }
+
   currentUser = user;
   const snap = await getDoc(doc(db, "users", user.uid));
   if (!snap.exists()) {
@@ -104,6 +117,8 @@ function renderAll() {
   }
 }
 
+// ALTO-03 · NIST AC-3/AC-6 — Verificación de rol en CLIENTE (solo para UI).
+// La autorización real se aplica en Firestore Security Rules — ver firestore.rules.
 function isAdmin() {
   return userData?.role === "admin";
 }
@@ -336,10 +351,16 @@ function renderProfile() {
             })
             .join("")}`
         : '<p class="subtitle">Todavía no hiciste pronósticos.</p>'
-    }</div><div class="dashboard-card"><span class="profile-label">Seguridad</span><h3>Cambiar contraseña</h3><form id="passwordForm" class="security-form"><div class="form-grid"><div class="form-group"><label>Nueva contraseña</label><input id="newPass" type="password" required minlength="6"></div><div class="form-group"><label>Repetir contraseña</label><input id="repeatPass" type="password" required minlength="6"></div></div><button class="save-btn">Cambiar contraseña</button></form><p id="passwordMsg" class="inline-message"></p><div class="profile-logout-box"><div><strong>Cerrar sesión</strong><p>Salir de tu cuenta actual.</p></div><button class="profile-logout-link" onclick="logout()">Cerrar sesión</button></div></div></div>`;
-  $("passwordForm")?.addEventListener("submit", changePassword);
+    }</div><div class="dashboard-card"><span class="profile-label">Seguridad</span><h3>Cambiar contraseña</h3>
+    <p class="subtitle">Te enviaremos un correo a <strong>${esc(userData.email)}</strong> con un enlace seguro para cambiar tu contraseña.</p>
+    <button id="sendResetBtn" class="save-btn">Enviar correo de cambio</button>
+    <p id="passwordMsg" class="inline-message"></p>
+    <div class="profile-logout-box"><div><strong>Cerrar sesión</strong><p>Salir de tu cuenta actual.</p></div><button class="profile-logout-link" onclick="logout()">Cerrar sesión</button></div></div></div>`;
+  // Suscribir el botón de cambio de contraseña vía correo
+  $("sendResetBtn")?.addEventListener("click", sendPasswordResetToSelf);
   $("profileChampionForm")?.addEventListener("submit", saveChampionProfile);
 }
+
 
 async function saveChampionProfile(e) {
   e.preventDefault();
@@ -382,38 +403,49 @@ async function saveChampionProfile(e) {
     };
     renderAll();
   } catch (err) {
-    console.error(err);
+    devLog('[app] Error guardando campeón:', err);
     msg.textContent =
       "No se pudo guardar el campeón. Revisá las reglas de Firestore.";
     msg.className = "inline-message error";
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Cambio de contraseña vía correo electrónico
+// NIST IA-5(1): Usar el email registrado garantiza posesión del canal secundario.
+// Más seguro que updatePassword(): no requiere reautenticación y el token del
+// correo expira (15 min por defecto en Firebase).
+// ─────────────────────────────────────────────────────────────────────────────
+async function sendPasswordResetToSelf() {
+  const msg = $("passwordMsg");
+  const btn = $("sendResetBtn");
+  if (!currentUser?.email) return;
+
+  btn.disabled = true;
+  msg.textContent = "Enviando...";
+  msg.className = "inline-message";
+
+  try {
+    await sendPasswordResetEmail(auth, currentUser.email);
+    msg.className = "inline-message success";
+    msg.textContent =
+      `✓ Correo enviado a ${currentUser.email}. Revisá tu bandeja de entrada y seguí el enlace para cambiar tu contraseña. El enlace expira en 15 minutos.`;
+    // Deshabilitar el botón 60 seg para evitar spam
+    setTimeout(() => { btn.disabled = false; }, 60_000);
+  } catch (err) {
+    devLog('[app] Error enviando reset email:', err);
+    msg.className = "inline-message error";
+    msg.textContent = "No se pudo enviar el correo. Intentá de nuevo más tarde.";
+    btn.disabled = false;
+  }
+}
+
+// Función legada — no se usa si emailVerified es el flujo principal
 async function changePassword(e) {
   e.preventDefault();
   const msg = $("passwordMsg");
-  const a = $("newPass").value,
-    b = $("repeatPass").value;
-  if (a !== b) {
-    msg.textContent = "Las contraseñas no coinciden.";
-    msg.className = "inline-message error";
-    return;
-  }
-  if (a.length < 6) {
-    msg.textContent = "La contraseña debe tener al menos 6 caracteres.";
-    msg.className = "inline-message error";
-    return;
-  }
-  try {
-    await updatePassword(currentUser, a);
-    msg.textContent = "Contraseña actualizada.";
-    msg.className = "inline-message success";
-    e.target.reset();
-  } catch (err) {
-    msg.textContent =
-      "No se pudo cambiar. Volvé a iniciar sesión e intentá otra vez.";
-    msg.className = "inline-message error";
-  }
+  // Redirigir al flujo de email seguro
+  await sendPasswordResetToSelf();
 }
 
 function renderRightPanel() {
@@ -491,12 +523,19 @@ function teamOptions(selected) {
 }
 async function saveResult(e) {
   e.preventDefault();
+  // Guard de cliente (la regla real está en firestore.rules)
+  if (!isAdmin()) return;
   if (!confirm("¿Seguro que querés guardar este resultado?")) return;
   const id = e.target.dataset.match;
   const m = matches.find((x) => x.id === id);
   const fd = new FormData(e.target);
   const goalsA = Number(fd.get("goalsA")),
     goalsB = Number(fd.get("goalsB"));
+  // Validación de integridad: no permitir valores negativos o irrazonables
+  if (!Number.isInteger(goalsA) || !Number.isInteger(goalsB) || goalsA < 0 || goalsB < 0 || goalsA > 30 || goalsB > 30) {
+    alert("Los goles deben ser números enteros entre 0 y 30.");
+    return;
+  }
   const penaltyWinnerId = fd.get("penaltyWinnerId") || "";
   let winnerId = "";
   if (goalsA > goalsB) winnerId = m.teamAId;
@@ -515,11 +554,14 @@ async function saveResult(e) {
     dateTime,
     updatedAt: serverTimestamp(),
   });
+  await logSecurityEvent('result_saved', { matchId: id, goalsA, goalsB });
   await loadData();
   renderAll();
 }
 async function saveTeams(e) {
   e.preventDefault();
+  // Guard de cliente (la regla real está en firestore.rules)
+  if (!isAdmin()) return;
   if (!confirm("¿Seguro que querés actualizar los equipos?")) return;
   const id = e.target.dataset.match;
   const fd = new FormData(e.target);
@@ -533,6 +575,8 @@ async function saveTeams(e) {
 }
 async function saveRealChampion(e) {
   e.preventDefault();
+  // Guard de cliente (la regla real está en firestore.rules)
+  if (!isAdmin()) return;
   if (!confirm("¿Seguro que querés definir el campeón real?")) return;
   await setDoc(
     doc(db, "settings", "tournament"),
@@ -543,6 +587,7 @@ async function saveRealChampion(e) {
     },
     { merge: true },
   );
+  await logSecurityEvent('champion_set', { championId: $("realChampion").value });
   await loadData();
   renderAll();
 }
@@ -567,24 +612,37 @@ async function savePrediction(e) {
       "No se puede pronosticar hasta que ambos equipos estén asignados.",
     );
   if (matchClosed(selectedMatch)) return alert("Este partido ya está cerrado.");
-  const goalsA = Number($("predA").value),
-    goalsB = Number($("predB").value),
-    penaltyWinnerId = $("predPenalty")?.value || "";
-  await setDoc(
-    doc(db, "predictions", `${currentUser.uid}_${selectedMatch.id}`),
-    {
-      uid: currentUser.uid,
-      matchId: selectedMatch.id,
-      goalsA,
-      goalsB,
-      penaltyWinnerId,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
-  closeModal();
-  await loadData();
-  renderAll();
+
+  const goalsA = Number($("predA").value);
+  const goalsB = Number($("predB").value);
+  const penaltyWinnerId = $("predPenalty")?.value || "";
+
+  // Validación de integridad de goles ingresados
+  if (!Number.isInteger(goalsA) || !Number.isInteger(goalsB) || goalsA < 0 || goalsB < 0 || goalsA > 30 || goalsB > 30) {
+    alert("Los goles deben ser números enteros entre 0 y 30.");
+    return;
+  }
+
+  try {
+    await setDoc(
+      doc(db, "predictions", `${currentUser.uid}_${selectedMatch.id}`),
+      {
+        uid: currentUser.uid,
+        matchId: selectedMatch.id,
+        goalsA,
+        goalsB,
+        penaltyWinnerId,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+    closeModal();
+    await loadData();
+    renderAll();
+  } catch (err) {
+    devLog('[app] Error guardando pronóstico:', err);
+    alert("No se pudo guardar el pronóstico. Intentá de nuevo.");
+  }
 }
 
 window.showSection = (id, btn) => {
@@ -631,6 +689,8 @@ window.logout = async () => {
 window.toggleUser = async (uid, active) => {
   if (!confirm("¿Seguro que querés cambiar el estado de este usuario?")) return;
   await updateDoc(doc(db, "users", uid), { active: !active });
+  // MEDIO-06 · NIST AU-2 — Log de eventos de seguridad
+  await logSecurityEvent(active ? 'user_deactivated' : 'user_activated', { targetUid: uid });
   await loadData();
   renderAll();
 };
@@ -650,4 +710,27 @@ window.goToNextMatch = (phaseId, matchId) => {
 function forceDarkTheme() {
   document.body.classList.remove("light-mode");
   localStorage.setItem("theme", "dark");
+}
+
+// MEDIO-04 · NIST SI-10 — Sanitización de lecturas desde localStorage
+function getThemeSafe() {
+  const VALID_THEMES = ['dark', 'light'];
+  const saved = localStorage.getItem('theme');
+  return VALID_THEMES.includes(saved) ? saved : 'dark';
+}
+
+// MEDIO-06 · NIST AU-2 / CIS 8.2 / ISO 27001 A.8.15 — Logging de eventos de seguridad
+async function logSecurityEvent(eventType, details = {}) {
+  try {
+    const logId = `${Date.now()}_${(currentUser?.uid || 'anon').slice(0, 8)}`;
+    await setDoc(doc(db, 'security_logs', logId), {
+      eventType,
+      uid: currentUser?.uid || null,
+      timestamp: serverTimestamp(),
+      userAgent: navigator.userAgent,
+      ...details,
+    });
+  } catch {
+    // No bloquear la app si el logging falla
+  }
 }

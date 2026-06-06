@@ -1,1 +1,78 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login | Penca Mundial</title><link rel="stylesheet" href="css/style.css"></head><body class="auth-body"><main class="auth-wrapper"><section class="auth-card"><div class="auth-logo"><div class="logo-icon">⚽</div><div><h2>PENCA 2026</h2><p class="auth-subtitle">Ingresá con tu correo y contraseña.</p></div></div><form id="loginForm" class="auth-form"><div class="auth-form-group"><label>Correo electrónico</label><input id="loginEmail" type="email" required></div><div class="auth-form-group"><label>Contraseña</label><input id="loginPassword" type="password" required></div><button class="auth-btn">Entrar</button></form><p id="loginMessage" class="inline-message"></p><p class="auth-footer-text"><a href="reset.html">Olvidé mi contraseña</a></p><p class="auth-footer-text">¿No tenés cuenta? <a href="registro.html">Registrarse</a></p></section></main><script type="module" src="js/auth.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login | Penca Mundial 2026</title>
+  <meta name="description" content="Iniciá sesión en la Penca Mundial 2026 del Profesorado de Informática.">
+
+  <!--
+    CRÍTICO-03 · OWASP A03 / NIST SI-10 / CIS 16.1 — Content Security Policy
+    Evita ejecución de scripts no autorizados (XSS). Configurar también como
+    header HTTP en firebase.json para mayor robustez.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com;
+    img-src 'self' data:;
+    font-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+  <main class="auth-wrapper">
+    <section class="auth-card">
+      <div class="auth-logo">
+        <div class="logo-icon">⚽</div>
+        <div>
+          <h2>PENCA 2026</h2>
+          <p class="auth-subtitle">Ingresá con tu correo y contraseña.</p>
+        </div>
+      </div>
+
+      <!--
+        MEDIO-02 · NIST IA-5 — Atributos autocomplete correctos en formulario de login.
+        Ayuda a gestores de contraseñas legítimos y evita comportamientos inconsistentes.
+      -->
+      <form id="loginForm" class="auth-form" autocomplete="on">
+        <div class="auth-form-group">
+          <label for="loginEmail">Correo electrónico</label>
+          <input id="loginEmail" type="email" autocomplete="username" required>
+        </div>
+        <div class="auth-form-group">
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="auth-btn" type="submit">Entrar</button>
+      </form>
+
+      <p id="loginMessage" class="inline-message"></p>
+      <p class="auth-footer-text"><a href="reset.html">Olvidé mi contraseña</a></p>
+      <p class="auth-footer-text">¿No tenés cuenta? <a href="registro.html">Registrarse</a></p>
+    </section>
+  </main>
+  <script type="module" src="js/auth.js"></script>
+  <script>
+    // Mostrar aviso si la app redirige por email no verificado
+    // BAJO-01 (complemento) · NIST IA-8
+    const params = new URLSearchParams(location.search);
+    if (params.get('msg') === 'verify') {
+      const el = document.getElementById('loginMessage');
+      el.className = 'inline-message';
+      el.textContent = '⚠️ Debes verificar tu correo electrónico antes de ingresar. Revisá tu bandeja de entrada.';
+    }
+  </script>
+</body>
+</html>

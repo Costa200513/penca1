@@ -1,1 +1,38 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Penca Mundial 2026</title><link rel="stylesheet" href="css/style.css"></head><body><div id="app" class="app"></div><script type="module" src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Penca Mundial 2026</title>
+  <meta name="description" content="Penca del Mundial 2026 — Profesorado de Informática. Pronosticá partidos, elegí campeón y competí en el ranking.">
+
+  <!--
+    CRÍTICO-03 · OWASP A03 / NIST SI-10 / CIS 16.1 — Content Security Policy
+    Evita ejecución de scripts no autorizados (XSS).
+    NOTA: Los headers HTTP en firebase.json son más robustos que esta meta tag.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com;
+    img-src 'self' data:;
+    font-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app" class="app"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

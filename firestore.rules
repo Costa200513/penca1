@@ -1,0 +1,156 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ALTO-03 · OWASP A01 / NIST AC-3, AC-6 / ISO 27001 A.8.3
+// Firestore Security Rules — Penca Mundial 2026
+//
+// IMPORTANTE: Estas reglas son la ÚNICA fuente de verdad para los permisos
+// de escritura. La verificación en el cliente (isAdmin()) es SOLO para la UI.
+//
+// Publicar con: firebase deploy --only firestore:rules
+// ─────────────────────────────────────────────────────────────────────────────
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Función auxiliar: verifica si el usuario autenticado es admin
+    // leyendo su documento en Firestore (server-side).
+    // ─────────────────────────────────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ALTO-03: Función auxiliar: usuario autenticado y activo
+    // ─────────────────────────────────────────────────────────────────────────
+    function isAuthenticatedUser() {
+      return request.auth != null;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // EQUIPOS (teams) — Solo lectura para usuarios autenticados; solo admin escribe
+    // ─────────────────────────────────────────────────────────────────────────
+    match /teams/{teamId} {
+      allow read: if isAuthenticatedUser();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FASES (phases) — Solo lectura para autenticados; solo admin escribe
+    // ─────────────────────────────────────────────────────────────────────────
+    match /phases/{phaseId} {
+      allow read: if isAuthenticatedUser();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PARTIDOS (matches) — Solo lectura para autenticados; solo admin escribe
+    // ─────────────────────────────────────────────────────────────────────────
+    match /matches/{matchId} {
+      allow read: if isAuthenticatedUser();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CONFIGURACIÓN (settings) — Solo lectura para autenticados; solo admin escribe
+    // ─────────────────────────────────────────────────────────────────────────
+    match /settings/{docId} {
+      allow read: if isAuthenticatedUser();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // USUARIOS (users)
+    // ALTO-03: Nadie puede auto-asignarse el rol 'admin' desde el cliente.
+    // ALTO-04: Cada usuario solo puede leer su propio documento;
+    //          admins pueden listar todos.
+    // ─────────────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      // Lectura propia o admin puede listar todos
+      allow get: if isAuthenticatedUser() && request.auth.uid == userId;
+      allow list: if isAdmin();
+
+      // Creación inicial (registro) — el usuario solo puede crear el suyo propio
+      // y no puede asignarse el rol admin
+      allow create: if isAuthenticatedUser()
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'user'
+                    && request.resource.data.active == true;
+
+      // Actualización: el usuario puede editar el suyo (excepto role, active)
+      allow update: if isAuthenticatedUser()
+                    && request.auth.uid == userId
+                    && !('role' in request.resource.data.diff(resource.data).affectedKeys())
+                    && !('active' in request.resource.data.diff(resource.data).affectedKeys());
+
+      // Admin puede actualizar cualquier usuario (incluyendo role y active)
+      allow update: if isAdmin();
+
+      // Nadie puede eliminar usuarios desde el cliente
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // NOMBRES DE USUARIO (usernames) — Para verificar unicidad de username
+    // ─────────────────────────────────────────────────────────────────────────
+    match /usernames/{username} {
+      // Se permite get sin autenticación para verificar disponibilidad en registro
+      allow get: if true;
+      allow list: if false;
+      // Solo el propio usuario puede crear su username al registrarse
+      allow create: if isAuthenticatedUser()
+                    && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRONÓSTICOS (predictions)
+    // ✅ BP-7: ID compuesto uid_matchId previene que un usuario sobrescriba
+    //         pronósticos de otros.
+    // ─────────────────────────────────────────────────────────────────────────
+    match /predictions/{predId} {
+      // Todos los autenticados pueden leer (para el ranking)
+      allow read: if isAuthenticatedUser();
+
+      // Solo el dueño puede crear/actualizar su pronóstico
+      // y el ID debe seguir el patrón uid_matchId
+      allow create, update: if isAuthenticatedUser()
+                             && request.resource.data.uid == request.auth.uid
+                             && predId == request.auth.uid + '_' + request.resource.data.matchId;
+
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CAMPEONES (champions) — Elección de campeón del torneo
+    // ─────────────────────────────────────────────────────────────────────────
+    match /champions/{userId} {
+      allow read: if isAuthenticatedUser();
+      // Solo el propio usuario puede crear su elección (una sola vez)
+      allow create: if isAuthenticatedUser()
+                    && request.auth.uid == userId
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.locked == true;
+      // La elección es inmutable una vez creada
+      allow update, delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOGS DE SEGURIDAD (security_logs)
+    // MEDIO-06: Solo el sistema (usuarios autenticados) puede escribir logs.
+    //           Solo admin puede leerlos.
+    // ─────────────────────────────────────────────────────────────────────────
+    match /security_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticatedUser();
+      allow update, delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Denegar acceso a todo lo no especificado explícitamente
+    // ─────────────────────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

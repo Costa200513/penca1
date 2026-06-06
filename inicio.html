@@ -1,1 +1,55 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Penca Mundial 2026</title><link rel="stylesheet" href="css/style.css"></head><body class="landing-body"><main class="landing-wrapper"><section class="landing-hero"><span class="landing-badge">Penca institucional</span><h1>Penca Mundial 2026</h1><p class="landing-description">Pronosticá resultados, elegí campeón y competí en el ranking con estudiantes y docentes.</p><div class="landing-actions"><a class="landing-btn primary" href="login.html">Iniciar sesión</a><a class="landing-btn secondary" href="registro.html">Registrarse</a></div><div class="credits">Desarrollado por Ezequiel Costa, 3.º año de Profesorado de Informática.</div></section><aside class="landing-panel"><div class="landing-card"><strong>+3</strong><span>Resultado exacto</span></div><div class="landing-card featured"><strong>+10</strong><span>Campeón acertado</span></div><div class="landing-card"><strong>30 min</strong><span>Cierre antes del partido</span></div></aside></main></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Penca Mundial 2026 — Profesorado de Informática</title>
+  <meta name="description" content="Penca institucional del Mundial 2026. Pronosticá resultados, elegí campeón y competí en el ranking con estudiantes y docentes.">
+
+  <!--
+    CRÍTICO-03 · OWASP A03 / NIST SI-10 / CIS 16.1 — Content Security Policy
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com;
+    img-src 'self' data:;
+    font-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="landing-body">
+  <main class="landing-wrapper">
+    <section class="landing-hero">
+      <span class="landing-badge">Penca institucional</span>
+      <h1>Penca Mundial 2026</h1>
+      <p class="landing-description">Pronosticá resultados, elegí campeón y competí en el ranking con estudiantes y docentes.</p>
+      <div class="landing-actions">
+        <!--
+          BAJO-03 · OWASP A05 — Links externos deben llevar rel="noopener noreferrer".
+          Estos son links internos, pero se documenta la política aquí como referencia.
+        -->
+        <a class="landing-btn primary" href="login.html">Iniciar sesión</a>
+        <a class="landing-btn secondary" href="registro.html">Registrarse</a>
+      </div>
+      <div class="credits">Desarrollado por Ezequiel Costa, 3.º año de Profesorado de Informática.</div>
+    </section>
+    <aside class="landing-panel">
+      <div class="landing-card"><strong>+3</strong><span>Resultado exacto</span></div>
+      <div class="landing-card featured"><strong>+10</strong><span>Campeón acertado</span></div>
+      <div class="landing-card"><strong>30 min</strong><span>Cierre antes del partido</span></div>
+    </aside>
+  </main>
+</body>
+</html>

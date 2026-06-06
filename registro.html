@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Registro | Penca Mundial</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+  <main class="auth-wrapper">
+    <section class="auth-card auth-card-wide">
+      <h1>Crear cuenta</h1>
+      <p class="auth-subtitle">Registrate con correo y usuario. La contraseña debe tener mínimo 6 caracteres. El campeón se elige luego desde el perfil.</p>
+
+      <form id="registerForm" class="auth-form">
+        <div class="auth-grid">
+          <div class="auth-form-group">
+            <label>Usuario</label>
+            <input id="username" type="text" required>
+            <small class="input-help">Solo letras, números, punto y guion bajo.</small>
+          </div>
+
+          <div class="auth-form-group">
+            <label>Nombre completo</label>
+            <input id="fullName" type="text" required>
+          </div>
+
+          <div class="auth-form-group">
+            <label>Correo electrónico</label>
+            <input id="email" type="email" required>
+          </div>
+
+          <div class="auth-form-group">
+            <label>Contraseña</label>
+            <input id="password" type="password" minlength="6" required>
+            <small class="input-help">Mínimo 6 caracteres.</small>
+          </div>
+
+          <div class="auth-form-group">
+            <label>Tipo de participante</label>
+            <select id="participantType" required>
+              <option value="">Seleccionar</option>
+              <option value="student">Estudiante</option>
+              <option value="teacher">Docente</option>
+            </select>
+          </div>
+
+          <div class="auth-form-group">
+            <label>Especialidad</label>
+            <input id="specialty" type="text" required>
+          </div>
+
+          <div class="auth-form-group">
+            <label>Año</label>
+            <select id="year" required>
+              <option value="">Seleccionar</option>
+              <option value="1">1.º</option>
+              <option value="2">2.º</option>
+              <option value="3">3.º</option>
+              <option value="4">4.º</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="auth-btn">Registrarme</button>
+      </form>
+
+      <p id="registerMessage" class="inline-message"></p>
+      <p class="auth-footer-text">¿Ya tenés cuenta? <a href="login.html">Iniciar sesión</a></p>
+    </section>
+  </main>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>
